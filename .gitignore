@@ -9,4 +9,8 @@ implementations/*/data
 implementations/*/images
 implementations/*/saved_models
 
+images/
+saved_models/
+log.txt
+
 __pycache__

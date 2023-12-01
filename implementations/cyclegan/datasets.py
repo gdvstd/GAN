@@ -14,12 +14,30 @@ def to_rgb(image):
 
 
 class ImageDataset(Dataset):
-    def __init__(self, root, transforms_=None, unaligned=False, mode="train"):
+    def __init__(self, root, transforms_=None, unaligned=False, mode="train", train_val_split=0.2):
         self.transform = transforms.Compose(transforms_)
         self.unaligned = unaligned
+        self.root = root
+        self.mode = mode
+        self.train_val_split = train_val_split # portion of validation
+        self.files_A, self.files_B = self.preprocess()
 
-        self.files_A = sorted(glob.glob(os.path.join(root, "%s/A" % mode) + "/*.*"))
-        self.files_B = sorted(glob.glob(os.path.join(root, "%s/B" % mode) + "/*.*"))
+    def preprocess(self):
+        files_A = sorted(glob.glob(os.path.join(self.root, "trainA") + "/*.*"))
+        files_B = sorted(glob.glob(os.path.join(self.root, "trainB") + "/*.*"))
+        length_A = len(files_A)
+        length_B = len(files_B)
+
+        if self.mode == "train":
+            files_A = files_A[: int(length_A * (1-self.train_val_split))]
+            files_B = files_B[: int(length_B * (1-self.train_val_split))]
+        elif self.mode == "test":
+            files_A = files_A[int(length_A * (1-self.train_val_split)): ]
+            files_B = files_B[int(length_B * (1-self.train_val_split)): ]
+        else:
+            raise ValueError("mode undefined")
+        
+        return files_A, files_B
 
     def __getitem__(self, index):
         image_A = Image.open(self.files_A[index % len(self.files_A)])
